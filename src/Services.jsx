@@ -1,262 +1,198 @@
-import { useState, useRef } from "react";
-import { motion, useInView, AnimatePresence } from "framer-motion";
-import { EASE_OUT, Reveal, RevealLine } from "./animations";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { EASE_OUT, Reveal } from "./animations";
 
-const DEFAULT_SERVICES = [
-  { id:"01", title:"Brand Identity",           description:"We build complete visual identities — mark, wordmark, colour, type, and motion — that hold their character across every surface and scale.",                                            tags:["Strategy","Logo","Typography","Colour","Guidelines"] },
-  { id:"02", title:"Web Design & Development", description:"Bespoke digital experiences, from information architecture and interaction design through to production-ready code. Performance, accessibility, and beauty — in that order.",             tags:["UX/UI","Prototyping","React","Framer","CMS"] },
-  { id:"03", title:"Art Direction",            description:"Creative direction for campaigns, editorial shoots, and brand worlds. We shape how a brand looks, moves, and feels across photography, video, and print.",                               tags:["Campaign","Photography","Video","Editorial"] },
-  { id:"04", title:"Digital Experience",       description:"Interactive installations, data-driven interfaces, and web applications that put craft at the centre of complex problems. We thrive at the boundary of design and engineering.",         tags:["Interaction","Animation","WebGL","Data Viz"] },
-];
+const SERVICES_DATA = {
+  STRATEGY: [
+    "Brand Ecosystem & Roadmap",
+    "Brand Positioning & Architecture",
+    "Brand Messaging",
+    "Brand Narrative",
+    "Market & Consumer Analysis",
+    "Go-To-Market Strategy"
+  ],
+  BRANDING: [
+    "Visual Identity Systems",
+    "Logo & Mark Design",
+    "Brand Guidelines",
+    "Typography & Color Theory",
+    "Packaging Design",
+    "Brand Collateral"
+  ],
+  DIGITAL: [
+    "Design Systems & Guidelines",
+    "UI Design",
+    "Visual Design",
+    "Digital Asset Playbooks",
+    "Interactive Prototyping",
+    "UX Principles Integration"
+  ],
+  MARKETING: [
+    "Content Strategy",
+    "Social Media Management",
+    "SEO & SEM",
+    "Email Marketing",
+    "Paid Advertising",
+    "Performance Tracking"
+  ],
+  PRODUCTION: [
+    "Video Production",
+    "Motion Graphics",
+    "3D Rendering",
+    "Photography",
+    "Post-Production",
+    "Sound Design"
+  ]
+};
 
-function ServiceRow({ service, index, isLast, ink, muted, border }) {
-  const [open, setOpen] = useState(false);
-  const ref    = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity:0, y:24 }}
-      animate={inView ? { opacity:1, y:0 } : {}}
-      transition={{ duration:0.85, delay:index * 0.1, ease:EASE_OUT }}
-    >
-      <button
-        onClick={() => setOpen(o => !o)}
-        aria-expanded={open}
-        style={{
-          width: "100%",
-          background: "none",
-          border: "none",
-          padding: "2.8rem 0",          /* tall row — each service breathes */
-          cursor: "pointer",
-          display: "grid",
-          gridTemplateColumns: "4rem 1fr auto",
-          alignItems: "center",
-          gap: "2rem",
-          textAlign: "left",
-          borderTop: `1px solid ${border}`,
-          borderBottom: isLast && !open ? `1px solid ${border}` : "none",
-        }}
-      >
-        {/* Index number */}
-        <span style={{
-          fontFamily: "'Cormorant Garamond', serif",
-          fontWeight: 300,
-          fontSize: "0.9rem",
-          color: muted,
-          opacity: 0.45,
-          letterSpacing: "0.05em",
-        }}>
-          {service.id}
-        </span>
-
-        {/* Title — larger, clear hierarchy */}
-        <span style={{
-          fontFamily: "'Cormorant Garamond', serif",
-          fontWeight: 300,
-          fontSize: "clamp(1.5rem, 3.2vw, 2.6rem)",
-          lineHeight: 1.1,
-          letterSpacing: "-0.01em",
-          color: ink,
-          transition: "opacity 0.25s ease",
-          opacity: open ? 1 : 0.82,
-        }}>
-          {service.title}
-        </span>
-
-        {/* Toggle */}
-        <motion.span
-          animate={{ rotate: open ? 45 : 0 }}
-          transition={{ duration: 0.42, ease: EASE_OUT }}
-          style={{
-            width: "36px",
-            height: "36px",
-            border: `1px solid ${border}`,
-            borderRadius: "50%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "1.1rem",
-            color: muted,
-            flexShrink: 0,
-            lineHeight: 1,
-          }}
-        >
-          +
-        </motion.span>
-      </button>
-
-      {/* Expanded content */}
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            key="body"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.55, ease: EASE_OUT }}
-            style={{ overflow: "hidden", borderBottom: isLast ? `1px solid ${border}` : "none" }}
-          >
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "4rem 1fr 1fr",
-              gap: "2rem",
-              padding: "0 0 3rem",     /* generous bottom padding inside expanded row */
-            }}>
-              <div />
-              <p style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontWeight: 300,
-                fontSize: "0.96rem",
-                lineHeight: 1.82,
-                color: muted,
-                margin: 0,
-              }}>
-                {service.description}
-              </p>
-              <div style={{ display:"flex", flexWrap:"wrap", gap:"0.6rem", alignContent:"flex-start" }}>
-                {service.tags.map(tag => (
-                  <span key={tag} style={{
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontWeight: 300,
-                    fontSize: "0.62rem",
-                    letterSpacing: "0.18em",
-                    textTransform: "uppercase",
-                    color: muted,
-                    border: `1px solid ${border}`,
-                    padding: "0.35rem 0.85rem",
-                    whiteSpace: "nowrap",
-                  }}>
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
-
-export default function Services({
-  eyebrow  = "What we do",
-  heading  = "Our services",
-  sub      = "A focused set of disciplines, delivered with depth.",
-  services = DEFAULT_SERVICES,
-  theme    = "light",
-}) {
+export default function Services({ theme = "light" }) {
+  const [activeTab, setActiveTab] = useState("STRATEGY");
+  
   const isDark = theme === "dark";
-  const bg     = isDark ? "#0d0d0d" : "#f5f3ef";
-  const ink    = isDark ? "#f0ede8" : "#0f0f0f";
-  const muted  = isDark ? "rgba(240,237,232,0.42)" : "rgba(15,15,15,0.42)";
-  const border = isDark ? "rgba(240,237,232,0.09)" : "rgba(15,15,15,0.09)";
+  const ink = isDark ? "var(--ink-inv)" : "var(--ink)";
+  const muted = isDark ? "rgba(240,237,232,0.3)" : "rgba(15,15,15,0.3)";
 
   return (
-    <>
+    <section id="services" style={{ 
+      padding: "160px var(--px)", 
+      background: isDark ? "var(--bg-dark)" : "var(--bg-light)",
+      minHeight: "100vh",
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center"
+    }}>
+      
+      {/* ── Top Section: Interactive Title Grid ── */}
+      <div style={{ marginBottom: "100px" }}>
+        <Reveal>
+          <span style={{ 
+            fontSize: "0.75rem", 
+            letterSpacing: "0.25em", 
+            textTransform: "uppercase", 
+            color: muted,
+            display: "block",
+            marginBottom: "50px",
+            fontFamily: "var(--font-sans)"
+          }}>
+            [ Capabilities ]
+          </span>
+        </Reveal>
+
+        <div style={{ 
+          display: "flex", 
+          flexWrap: "wrap", 
+          gap: "1.5rem 5rem",
+          alignItems: "baseline" 
+        }}>
+          {Object.keys(SERVICES_DATA).map((key) => (
+            <motion.h2
+              key={key}
+              onMouseEnter={() => setActiveTab(key)}
+              style={{
+                fontFamily: "var(--font-serif)",
+                fontSize: "clamp(3.5rem, 8vw, 8rem)",
+                lineHeight: 0.9,
+                cursor: "pointer",
+                margin: 0,
+                color: activeTab === key ? ink : muted,
+                transition: "color 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+                textTransform: "uppercase",
+                display: "flex",
+                alignItems: "center",
+                position: "relative"
+              }}
+            >
+              {activeTab === key && (
+                <motion.span 
+                  layoutId="active-indicator"
+                  style={{ 
+                    width: "14px", 
+                    height: "14px", 
+                    borderRadius: "50%", 
+                    background: ink,
+                    position: "absolute",
+                    left: "-30px",
+                    top: "50%",
+                    translateY: "-50%"
+                  }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+              {key}
+            </motion.h2>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Bottom Section: Detail Reveal ── */}
+      <div style={{ 
+        borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`, 
+        paddingTop: "60px",
+        display: "grid",
+        gridTemplateColumns: "1fr 2fr",
+        gap: "40px"
+      }}>
+        {/* Left Column: Active Label */}
+        <div>
+          <motion.p
+            key={`label-${activeTab}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            style={{ 
+              fontSize: "0.8rem", 
+              color: ink, 
+              textTransform: "uppercase", 
+              letterSpacing: "0.15em",
+              fontFamily: "var(--font-sans)"
+            }}
+          >
+            Core / {activeTab}
+          </motion.p>
+        </div>
+
+        {/* Right Column: Detailed List */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px 60px" }}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.6, ease: EASE_OUT }}
+              style={{ gridColumn: "span 2", display: "grid", gridTemplateColumns: "1fr 1fr" }}
+            >
+              {SERVICES_DATA[activeTab].map((item) => (
+                <div key={item} style={{ 
+                  fontSize: "1.2rem", 
+                  color: ink, 
+                  padding: "16px 0",
+                  fontFamily: "var(--font-sans)",
+                  fontWeight: 300,
+                  borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center"
+                }}>
+                  {item}
+                  <span style={{ fontSize: "0.7rem", opacity: 0.3 }}>/</span>
+                </div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Mobile Styles (Injected) */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300&family=DM+Sans:wght@300;400&display=swap');
-
-        .sv-root {
-          background: ${bg};
-          padding: var(--py, 11rem) var(--px, 3.5rem);
-        }
-        .sv-inner { max-width: var(--max-w, 1200px); margin: 0 auto; }
-
-        /* Header — two-column, heading left, sub right */
-        .sv-header {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 5rem;
-          align-items: end;
-          margin-bottom: 5rem;         /* clear gap between header and list */
-        }
-
-        .sv-eyebrow {
-          font-family: 'DM Sans', sans-serif;
-          font-weight: 300;
-          font-size: 0.65rem;
-          letter-spacing: 0.26em;
-          text-transform: uppercase;
-          color: ${muted};
-          display: flex;
-          align-items: center;
-          gap: 0.7rem;
-          margin-bottom: 1.6rem;       /* clear gap eyebrow → heading */
-        }
-        .sv-ey-dot { width: 5px; height: 5px; border-radius: 50%; background: ${muted}; flex-shrink: 0; }
-
-        /* Heading — punchy, large */
-        .sv-h2 {
-          font-family: 'Cormorant Garamond', serif;
-          font-weight: 300;
-          font-size: clamp(2.4rem, 5vw, 4.5rem);
-          line-height: 1;
-          letter-spacing: -0.02em;
-          color: ${ink};
-          margin: 0;
-        }
-
-        /* Sub — body copy weight, comfortable line-height */
-        .sv-sub {
-          font-family: 'DM Sans', sans-serif;
-          font-weight: 300;
-          font-size: 1rem;
-          line-height: 1.82;
-          color: ${muted};
-          margin: 0;
-          max-width: 400px;
-          align-self: end;
-        }
-
-        @media (max-width: 768px) {
-          .sv-header { grid-template-columns: 1fr; gap: 2rem; margin-bottom: 3.5rem; }
-          .sv-sub { max-width: 100%; }
-        }
-        @media (max-width: 480px) {
-          .sv-root { padding: var(--py) var(--px); }
+        @media (max-width: 900px) {
+          #services { padding-top: 100px; padding-bottom: 100px; }
+          #services h2 { font-size: 4rem; }
+          #services .active-indicator { display: none; }
+          #services > div:last-child { grid-template-columns: 1fr; }
+          #services > div:last-child > div:last-child { grid-template-columns: 1fr; }
+          #services > div:last-child > div:last-child > div { grid-template-columns: 1fr; }
         }
       `}</style>
-
-      <section className="sv-root" id="services">
-        <div className="sv-inner">
-
-          <div className="sv-header">
-            <div>
-              <Reveal delay={0}>
-                <div className="sv-eyebrow">
-                  <span className="sv-ey-dot" />
-                  {eyebrow}
-                </div>
-              </Reveal>
-              <Reveal delay={0.08}>
-                <h2 className="sv-h2">{heading}</h2>
-              </Reveal>
-            </div>
-            <Reveal delay={0.16} style={{ alignSelf:"end" }}>
-              <p className="sv-sub">{sub}</p>
-            </Reveal>
-          </div>
-
-          <RevealLine color={border} />
-
-          <div>
-            {services.map((svc, i) => (
-              <ServiceRow
-                key={svc.id}
-                service={svc}
-                index={i}
-                isLast={i === services.length - 1}
-                ink={ink}
-                muted={muted}
-                border={border}
-              />
-            ))}
-          </div>
-
-        </div>
-      </section>
-    </>
+    </section>
   );
 }

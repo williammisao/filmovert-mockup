@@ -1,6 +1,39 @@
-import { useRef, useState } from "react";
+/**
+ * Hero.jsx
+ *
+ * Layout (top → bottom, both share id="home"):
+ *
+ *   ┌─────────────────────────────────────────┐
+ *   │  VIDEO HERO  — 100vh, edge-to-edge      │  ← first thing user sees
+ *   │  • Full-bleed autoplay/muted/loop video │
+ *   │  • Gradient veil for legibility         │
+ *   │  • Eyebrow + tagline overlaid bottom-L  │
+ *   │  • Scroll-down arrow bottom-centre      │
+ *   └─────────────────────────────────────────┘
+ *   ┌─────────────────────────────────────────┐
+ *   │  TEXT HERO  — headline + sub + CTA      │  ← scrolled to
+ *   │  • Word-split animated headline         │
+ *   │  • Horizontal rule                      │
+ *   │  • Subtext + CTA button                 │
+ *   └─────────────────────────────────────────┘
+ *
+ * Props:
+ *   videoSrc   string   — URL/path of the hero video.
+ *                         Defaults to a free Pexels MP4 (creative / abstract).
+ *   videoPoster string  — Poster image shown before video loads.
+ *   eyebrow    string
+ *   lines      string[] — Headline split into lines
+ *   sub        string
+ *   cta        { label, href }
+ *   theme      'light' | 'dark'
+ */
+
+import { useRef, useState, useEffect } from "react";
 import { motion, useInView, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { EASE_OUT, SplitWords } from "./animations";
+import heroVid from "./videos/HeroVideo.mp4";
+
+// ─── Animation variants ────────────────────────────────────────────────────────
 
 const CONTAINER = {
   hidden: {},
@@ -12,12 +45,14 @@ const FADE_UP = {
   show:   { opacity: 1, y: 0, transition: { duration: 0.9, ease: EASE_OUT } },
 };
 
-const LINE = {
+const LINE_VAR = {
   hidden: { scaleX: 0, originX: 0 },
   show:   { scaleX: 1, transition: { duration: 1.1, ease: EASE_OUT } },
 };
 
-function CursorSpotlight() {
+// ─── Cursor spotlight (for text section) ──────────────────────────────────────
+
+function CursorSpotlight({ ink }) {
   const mx = useMotionValue(0.5);
   const my = useMotionValue(0.5);
   const sx = useSpring(mx, { stiffness: 60, damping: 20 });
@@ -26,15 +61,13 @@ function CursorSpotlight() {
   const bgY = useTransform(sy, [0, 1], ["10%", "90%"]);
   const [visible, setVisible] = useState(false);
 
-  const onMove = (e) => {
-    const r = e.currentTarget.getBoundingClientRect();
-    mx.set((e.clientX - r.left) / r.width);
-    my.set((e.clientY - r.top)  / r.height);
-  };
-
   return (
     <motion.div
-      onMouseMove={onMove}
+      onMouseMove={(e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        mx.set((e.clientX - r.left) / r.width);
+        my.set((e.clientY - r.top) / r.height);
+      }}
       onMouseEnter={() => setVisible(true)}
       onMouseLeave={() => setVisible(false)}
       style={{ position: "absolute", inset: 0, pointerEvents: "all" }}
@@ -52,13 +85,121 @@ function CursorSpotlight() {
   );
 }
 
-export default function Hero({
-  eyebrow = "Creative Studio — Est. 2024",
-  lines   = ["We shape", "brands that", "last."],
-  sub     = "Strategy, design, and technology — crafted with intention for companies that refuse to be ordinary.",
-  cta     = { label: "See our work", href: "#work" },
-  theme   = "light",
-}) {
+// ─── Scroll arrow ──────────────────────────────────────────────────────────────
+
+function ScrollArrow({ color = "rgba(15,15,15,0.45)" }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 1.6, duration: 0.7, ease: EASE_OUT }}
+      style={{
+        position:   "absolute",
+        bottom:     "2.8rem",
+        left:       "50%",
+        transform:  "translateX(-50%)",
+        display:    "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap:        "0.5rem",
+        color,
+        fontFamily: "'DM Sans', sans-serif",
+        fontWeight: 300,
+        fontSize:   "0.58rem",
+        letterSpacing: "0.22em",
+        textTransform: "uppercase",
+        cursor:     "pointer",
+        zIndex:     4,
+      }}
+      onClick={() =>
+        document.getElementById("hero-text")?.scrollIntoView({ behavior: "smooth" })
+      }
+    >
+      {/* Animated line that pulses downward */}
+      <motion.span
+        style={{
+          width:           "1px",
+          height:          "42px",
+          background:      `linear-gradient(to bottom, transparent 0%, ${color} 100%)`,
+          display:         "block",
+        }}
+        animate={{ scaleY: [0.4, 1, 0.4], opacity: [0.4, 1, 0.4] }}
+        transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+      />
+      Scroll
+    </motion.div>
+  );
+}
+
+// ─── Video section ─────────────────────────────────────────────────────────────
+
+function VideoHero({ videoSrc, videoPoster, eyebrow }) {
+  const videoRef = useRef(null);
+  const [videoReady, setVideoReady] = useState(false);
+
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+
+    // Restore src in case it was cleared by a previous unmount (React Strict Mode)
+    if (!v.src || v.src === window.location.href) {
+      v.src = videoSrc;
+      v.load();
+    }
+
+    const onReady = () => setVideoReady(true);
+    v.addEventListener("canplay", onReady);
+
+    // If already ready (cached), mark immediately
+    if (v.readyState >= 3) setVideoReady(true);
+
+    v.play().catch(() => {});
+
+    return () => {
+      v.removeEventListener("canplay", onReady);
+      v.pause();
+      v.src = "";
+      v.load();
+    };
+  }, [videoSrc]);
+
+  return (
+    <div className="vh-root">
+      {/* ── Video element ── */}
+      <motion.video
+        ref={videoRef}
+        src={videoSrc}
+        poster={videoPoster}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        className="vh-video"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: videoReady ? 1 : 0 }}
+        transition={{ duration: 1.4, ease: "easeOut" }}
+      />
+
+      {/* Poster / placeholder shown until video loads */}
+      {!videoReady && videoPoster && (
+        <img
+          src={videoPoster}
+          alt=""
+          className="vh-poster"
+          aria-hidden
+        />
+      )}
+
+      {/* Scroll prompt */}
+      <ScrollArrow />
+    </div>
+  );
+}
+
+// ─── Text hero section ─────────────────────────────────────────────────────────
+
+function TextHero({ eyebrow, lines, sub, cta, theme }) {
   const ref    = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
@@ -70,76 +211,201 @@ export default function Hero({
   const ctaInk = isDark ? "#0a0a0a" : "#f5f3ef";
 
   return (
+    <section
+      id="hero-text"
+      ref={ref}
+      className="ht-root"
+      style={{ background: bg }}
+    >
+      <CursorSpotlight ink={ink} />
+
+      <motion.div
+        className="ht-inner"
+        variants={CONTAINER}
+        initial="hidden"
+        animate={inView ? "show" : "hidden"}
+      >
+        {eyebrow && (
+          <motion.div className="ht-eyebrow" variants={FADE_UP}
+            style={{ color: muted }}
+          >
+            <span className="ht-eyebrow-dot" style={{ background: muted }} />
+            {eyebrow}
+          </motion.div>
+        )}
+
+        <div>
+          {lines.map((line, i) => (
+            <div key={i} style={{ display: "block" }}>
+              <span
+                className="ht-hl"
+                style={{ color: i === lines.length - 1 ? muted : ink }}
+              >
+                <SplitWords text={line} />
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <motion.div
+          className="ht-rule"
+          variants={LINE_VAR}
+          style={{ background: isDark ? "rgba(240,237,232,0.1)" : "rgba(15,15,15,0.1)" }}
+        />
+
+        <div className="ht-bottom">
+          <motion.p className="ht-sub" variants={FADE_UP} style={{ color: muted }}>
+            {sub}
+          </motion.p>
+          {cta && (
+            <motion.a
+              href={cta.href}
+              className="ht-cta"
+              variants={FADE_UP}
+              style={{ background: ctaBg, color: ctaInk }}
+            >
+              {cta.label} <span>↗</span>
+            </motion.a>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Corner labels */}
+      <motion.span
+        className="ht-scroll"
+        style={{ color: muted }}
+        initial={{ opacity: 0 }}
+        animate={inView ? { opacity: 1 } : {}}
+        transition={{ delay: 1.5, duration: 0.6 }}
+      >
+        <span className="ht-scroll-line" style={{ background: muted }} />
+        Scroll
+      </motion.span>
+      <motion.span
+        className="ht-idx"
+        style={{ color: muted }}
+        initial={{ opacity: 0 }}
+        animate={inView ? { opacity: 1 } : {}}
+        transition={{ delay: 1.5, duration: 0.6 }}
+      >
+        02 / Headline
+      </motion.span>
+    </section>
+  );
+}
+
+// ─── Hero (default export) ─────────────────────────────────────────────────────
+
+export default function Hero({
+  // Video props
+  videoSrc    = heroVid,
+  videoPoster = null,
+  // Text hero props
+  eyebrow = "Filmovert — Est. 2024",
+  lines   = ["We shape", "brands that", "last."],
+  sub     = "Strategy, design, and technology — crafted with intention for companies that refuse to be ordinary.",
+  cta     = { label: "See our work", href: "#work" },
+  theme   = "light",
+}) {
+  return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=DM+Sans:wght@300;400&display=swap');
 
-        .hero-root {
+        /* ══════════════════════════════════════
+           VIDEO HERO
+        ══════════════════════════════════════ */
+
+        .vh-root {
+          position: relative;
+          width: 100%;
+          height: 100vh;
+          overflow: hidden;
+          background: #ffffff;
+        }
+
+        /* Video fills the container, centred + cropped */
+        .vh-video {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
+          /* GPU layer hint */
+          will-change: opacity;
+        }
+
+        /* Poster fallback */
+        .vh-poster {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
+        }
+
+
+
+        /* ══════════════════════════════════════
+           TEXT HERO
+        ══════════════════════════════════════ */
+
+        .ht-root {
           position: relative;
           overflow: hidden;
-          background: ${bg};
-          /* Tall padding: nav height + generous top breathing room */
-          padding: 14rem var(--px, 3.5rem) 8rem;
+          width: 100%;
           min-height: 100vh;
           display: flex;
           flex-direction: column;
           justify-content: center;
+          padding: 14rem var(--px, 3.5rem) 8rem;
         }
 
-        .hero-inner {
-          max-width: var(--max-w, 1200px);
-          margin: 0 auto;
+        .ht-inner {
           width: 100%;
           position: relative;
           z-index: 1;
         }
 
-        /* Eyebrow — small, very spaced, high contrast muted */
-        .hero-eyebrow {
+        .ht-eyebrow {
           font-family: 'DM Sans', sans-serif;
           font-weight: 300;
           font-size: var(--t-micro, 0.65rem);
           letter-spacing: 0.28em;
           text-transform: uppercase;
-          color: ${muted};
-          margin-bottom: 3.5rem;     /* generous gap before headline */
+          margin-bottom: 3.5rem;
           display: flex;
           align-items: center;
           gap: 0.9rem;
         }
-        .hero-eyebrow-dot {
+        .ht-eyebrow-dot {
           width: 5px; height: 5px;
           border-radius: 50%;
-          background: ${muted};
           flex-shrink: 0;
         }
 
-        /* Display headline — maximum size and impact */
-        .hero-hl {
+        .ht-hl {
           font-family: 'Cormorant Garamond', serif;
           font-weight: 300;
-          font-size: var(--t-display, clamp(4.5rem, 13vw, 12rem));
-          line-height: 0.92;          /* ultra-tight for display sizes */
+          font-size: clamp(4rem, 13vw, 99rem);
+          line-height: 0.92;
           letter-spacing: -0.03em;
-          color: ${ink};
           margin: 0;
           display: block;
+          font-style: normal;
         }
-        .hero-hl-dim {
-          color: ${muted};
-          font-style: italic;
-        }
+        /* Last line handled via inline color prop */
 
-        /* Rule — breathing gap above and below */
-        .hero-rule {
+        .ht-rule {
           height: 1px;
-          background: rgba(15,15,15,0.1);
-          margin: 5rem 0;            /* much more space around the rule */
+          margin: 5rem 0;
           transform-origin: left;
+          width: 100%;
         }
 
-        /* Bottom row — sub and CTA */
-        .hero-bottom {
+        .ht-bottom {
           display: flex;
           align-items: flex-end;
           justify-content: space-between;
@@ -147,19 +413,16 @@ export default function Hero({
           flex-wrap: wrap;
         }
 
-        /* Sub — larger, more readable, wider max-width */
-        .hero-sub {
+        .ht-sub {
           font-family: 'DM Sans', sans-serif;
           font-weight: 300;
           font-size: var(--t-body, clamp(0.95rem, 1.4vw, 1.05rem));
           line-height: 1.85;
-          color: ${muted};
           max-width: 480px;
           margin: 0;
         }
 
-        /* CTA button */
-        .hero-cta {
+        .ht-cta {
           display: inline-flex;
           align-items: center;
           gap: 0.7rem;
@@ -169,17 +432,15 @@ export default function Hero({
           letter-spacing: 0.2em;
           text-transform: uppercase;
           text-decoration: none;
-          color: ${ctaInk};
-          background: ${ctaBg};
           padding: 1.15rem 2.2rem;
           transition: transform 0.22s ease, gap 0.22s ease;
           white-space: nowrap;
           align-self: flex-end;
         }
-        .hero-cta:hover { transform: translateY(-2px); gap: 1rem; }
+        .ht-cta:hover { transform: translateY(-2px); gap: 1rem; }
 
-        /* Corner micro-labels */
-        .hero-scroll {
+        /* Corner labels */
+        .ht-scroll {
           position: absolute;
           bottom: 3rem;
           left: var(--px, 3.5rem);
@@ -187,14 +448,13 @@ export default function Hero({
           font-weight: 300;
           font-size: var(--t-micro, 0.65rem);
           letter-spacing: 0.2em;
-          color: ${muted};
           text-transform: uppercase;
           display: flex;
           align-items: center;
           gap: 0.7rem;
         }
-        .hero-scroll-line { width: 36px; height: 1px; background: ${muted}; }
-        .hero-idx {
+        .ht-scroll-line { width: 36px; height: 1px; }
+        .ht-idx {
           position: absolute;
           bottom: 3rem;
           right: var(--px, 3.5rem);
@@ -202,78 +462,59 @@ export default function Hero({
           font-weight: 300;
           font-size: var(--t-micro, 0.65rem);
           letter-spacing: 0.2em;
-          color: ${muted};
         }
 
+        /* ── Responsive ── */
         @media (max-width: 768px) {
-          .hero-root { padding: 10rem var(--px) 6rem; }
-          .hero-rule { margin: 3.5rem 0; }
-          .hero-bottom { flex-direction: column; gap: 2rem; }
-          .hero-cta { align-self: flex-start; }
-          .hero-idx { display: none; }
+          .vh-overlay { bottom: 5rem; } /* avoid clash with scroll arrow */
+          .ht-root { padding: 10rem var(--px) 6rem; }
+          .ht-rule { margin: 3.5rem 0; }
+          .ht-bottom { flex-direction: column; gap: 2rem; }
+          .ht-cta { align-self: flex-start; }
+          .ht-idx { display: none; }
+          .vh-muted { top: 5rem; }
         }
         @media (max-width: 480px) {
-          .hero-root { padding: 8rem var(--px) 5rem; }
-          .hero-eyebrow { margin-bottom: 2.5rem; }
-          .hero-rule { margin: 2.5rem 0; }
+          .ht-root { padding: 8rem var(--px) 5rem; }
+          .ht-eyebrow { margin-bottom: 2.5rem; }
+          .ht-rule { margin: 2.5rem 0; }
         }
       `}</style>
 
-      <section className="hero-root" ref={ref} id="home">
-        <CursorSpotlight />
+      {/* ── 1. Full-screen video — first thing shown ── */}
+      <VideoHero
+        videoSrc={videoSrc}
+        videoPoster={videoPoster}
+        eyebrow={eyebrow}
+      />
 
-        <motion.div
-          className="hero-inner"
-          variants={CONTAINER}
-          initial="hidden"
-          animate={inView ? "show" : "hidden"}
-        >
-          {eyebrow && (
-            <motion.div className="hero-eyebrow" variants={FADE_UP}>
-              <span className="hero-eyebrow-dot" />
-              {eyebrow}
-            </motion.div>
-          )}
-
-          <div>
-            {lines.map((line, i) => (
-              <div key={i} style={{ display: "block" }}>
-                <span className={`hero-hl${i === lines.length - 1 ? " hero-hl-dim" : ""}`}>
-                  <SplitWords text={line} />
-                </span>
-              </div>
-            ))}
-          </div>
-
-          <motion.div className="hero-rule" variants={LINE} />
-
-          <div className="hero-bottom">
-            <motion.p className="hero-sub" variants={FADE_UP}>{sub}</motion.p>
-            {cta && (
-              <motion.a href={cta.href} className="hero-cta" variants={FADE_UP}>
-                {cta.label} <span>↗</span>
-              </motion.a>
-            )}
-          </div>
-        </motion.div>
-
-        <motion.span
-          className="hero-scroll"
-          initial={{ opacity: 0 }}
-          animate={inView ? { opacity: 1 } : {}}
-          transition={{ delay: 1.5, duration: 0.6 }}
-        >
-          <span className="hero-scroll-line" />Scroll
-        </motion.span>
-        <motion.span
-          className="hero-idx"
-          initial={{ opacity: 0 }}
-          animate={inView ? { opacity: 1 } : {}}
-          transition={{ delay: 1.5, duration: 0.6 }}
-        >
-          01 / Hero
-        </motion.span>
-      </section>
+      {/* ── 2. Text headline — scrolled to ── */}
+      <TextHero
+        eyebrow={eyebrow}
+        lines={lines}
+        sub={sub}
+        cta={cta}
+        theme={theme}
+      />
     </>
   );
 }
+
+// ─── Usage ────────────────────────────────────────────────────────────────────
+//
+// Default (Pexels demo video):
+//   <Hero />
+//
+// Your own video:
+//   <Hero
+//     videoSrc="/videos/showreel.mp4"
+//     videoPoster="/videos/showreel-poster.jpg"
+//     eyebrow="Creative Studio — Est. 2024"
+//     lines={["We shape", "brands that", "last."]}
+//     sub="Strategy and design..."
+//     cta={{ label: "See our work", href: "#work" }}
+//     theme="light"
+//   />
+//
+// For best results use a 1920×1080 or wider MP4 (H.264, < 8 MB for fast load).
+// Add a WebM source for better compression in Chrome/Firefox.

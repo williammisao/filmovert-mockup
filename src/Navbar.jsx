@@ -156,7 +156,7 @@ export default function Navbar() {
             animate={ready ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.8, delay: 0.1, ease: EASE_OUT }}
           >
-            <a href="/" className="nav-logo">Studio&thinsp;/&thinsp;Name</a>
+            <a href="/" className="nav-logo">Filmovert</a>
           </motion.div>
 
           <ul className="nav-links">

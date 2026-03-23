@@ -77,9 +77,9 @@ function PhilItem({ number, heading, body, delay, ink, muted, border }) {
 export default function About({
   eyebrow      = "About the Studio",
   heading      = "We believe great design is an act of clarity.",
-  description  = "Founded in 2018, we're a small studio of designers, strategists, and technologists who partner with ambitious companies to build brands and digital products that endure. We don't do volume. We do depth.",
+  description  = "Founded in 2025, Filmovert is a small studio of designers, strategists, and technologists who partner with ambitious companies to build brands and digital products that endure. We don't do volume. We do depth.",
   image        = "https://picsum.photos/seed/AboutStudio/900/1100",
-  imageCaption = "Our studio — Lisbon, Portugal",
+  imageCaption = "Our studio — India",
   philosophy   = {
     label: "Our Philosophy",
     items: [

@@ -35,7 +35,7 @@ export default function CTA({
   headline     = ["Let's build", "something", "great."],
   sub          = "We take on a small number of projects each year. If you have something worth making, we'd like to hear about it.",
   primaryCta   = { label:"Start a project", href:"#contact" },
-  secondaryCta = { label:"hello@studio.co", href:"mailto:hello@studio.co" },
+  secondaryCta = { label:"hello@filmovert.com", href:"mailto:hello@filmovert.com" },
   marqueeText  = "Let's work together",
   theme        = "dark",
 }) {
@@ -282,7 +282,7 @@ export default function CTA({
           transition={{ duration:0.7, delay:1.1, ease:EASE_OUT }}
         >
           <div className="cta-avail"><span className="cta-adot" />Currently accepting projects</div>
-          <span className="cta-yr">© Studio Name {new Date().getFullYear()}</span>
+          <span className="cta-yr">© Filmovert {new Date().getFullYear()}</span>
         </motion.div>
       </section>
     </>

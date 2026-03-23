@@ -268,7 +268,7 @@ export default function Home() {
 
           {/* 2 ── Hero — full-width headline */}
           <Hero
-            eyebrow="Creative Studio — Est. 2024"
+            eyebrow="Filmovert — Est. 2025"
             lines={["We shape", "brands that", "last."]}
             sub="Strategy, design, and technology — crafted with intention for companies that refuse to be ordinary."
             cta={{ label: "See our work", href: "#work" }}
@@ -288,11 +288,11 @@ export default function Home() {
 
           {/* 5 ── About */}
           <About
-            eyebrow="About the Studio"
+            eyebrow="About Filmovert"
             heading="We believe great design is an act of clarity."
-            description="Founded in 2018, we're a small studio of designers, strategists, and technologists who partner with ambitious companies to build brands and digital products that endure. We don't do volume. We do depth."
+            description="Founded in 2025, Filmovert is a small studio of designers, strategists, and technologists who partner with ambitious companies to build brands and digital products that endure. We don't do volume. We do depth."
             image="https://picsum.photos/seed/AboutStudio/900/1100"
-            imageCaption="Our studio — Lisbon, Portugal"
+            imageCaption="Our studio — India"
             philosophy={PHILOSOPHY}
             cta={{ label: "Start a conversation", href: "#contact" }}
             theme="light"
@@ -315,19 +315,19 @@ export default function Home() {
             headline={["Let's build", "something", "great."]}
             sub="We take on a small number of projects each year. If you have something worth making, we'd like to hear about it."
             primaryCta={{ label: "Start a project", href: "#contact" }}
-            secondaryCta={{ label: "hello@studio.co", href: "mailto:hello@studio.co" }}
+            secondaryCta={{ label: "hello@filmovert.com", href: "mailto:hello@filmovert.com" }}
             marqueeText="Let's work together"
             theme="dark"
           />
 
           {/* 8 ── Footer */}
           <Footer
-            logo="Studio / Name"
+            logo="Filmovert"
             tagline="Crafting brands and digital experiences that endure."
-            email="hello@studio.co"
-            location="Lisbon, Portugal — GMT+1"
+            email="hello@filmovert.com"
+            location="India"
             socials={SOCIALS}
-            legal={`© ${new Date().getFullYear()} Studio Name. All rights reserved.`}
+            legal={`© ${new Date().getFullYear()} Filmovert. All rights reserved.`}
             theme="dark"
           />
         </motion.div>

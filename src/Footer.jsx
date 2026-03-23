@@ -10,12 +10,12 @@ const DEFAULT_SOCIALS = [
 ];
 
 export default function Footer({
-  logo     = "Studio / Name",
+  logo     = "Filmovert",
   tagline  = "Crafting brands and digital experiences that endure.",
-  email    = "hello@studio.co",
+  email    = "hello@filmovert.com",
   socials  = DEFAULT_SOCIALS,
-  legal    = `© ${new Date().getFullYear()} Studio Name. All rights reserved.`,
-  location = "Lisbon, Portugal — GMT+1",
+  legal    = `© ${new Date().getFullYear()} Filmovert. All rights reserved.`,
+  location = "India",
   theme    = "dark",
 }) {
   const ref    = useRef(null);
